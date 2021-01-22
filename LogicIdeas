@@ -1,0 +1,6 @@
+Binary Number data storage:
+
+*As a Integer. This option would be the easiest since we could just use %10 to shift digits, however I do not know how the adding or subtracting would work
+*Data Array, we would have more control over the data. 
+*Object/Linkedlist, we could store each digit in an object then link them together as a Linked list. Personally i think this is the best option right now.
+Since we would have control over the digits one by one, allowing for specifc manipulation of the numbers through LinkedList commands/functions. 
