@@ -4,3 +4,4 @@ Binary Number data storage:
 *Data Array, we would have more control over the data. 
 *Object/Linkedlist, we could store each digit in an object then link them together as a Linked list. Personally i think this is the best option right now.
 Since we would have control over the digits one by one, allowing for specifc manipulation of the numbers through LinkedList commands/functions. 
+//Tallon - 01/22/2021
