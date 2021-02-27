@@ -17,8 +17,8 @@ def get_input():
     Requests input from the user and parses the input String into a numerical operand one, String character, and
     numerical operand two
 
-    :return: The integer value of operand 1 in base-10, the String operator, and the integer value of operand 2 in
-    base-10
+    :return: The integer value of operand 1 in base-2, the String operator, and the integer value of operand 2 in
+    base-2
     """
     input_val = input('Please enter calculation: ')
 
