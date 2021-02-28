@@ -10,6 +10,8 @@
 # the end of the input
 
 import re
+from gpiozero import LEDBoard, LED
+from time import sleep
 
 
 def get_input():
@@ -26,18 +28,15 @@ def get_input():
     operator = re.search('[+\\-*/]', input_val)
     operator_start, operator_end = operator.span()
 
-    # get index of equals sign
-    equals_sign = input_val.find('=')
-
     # operand 1 is a number located between the beginning of the input string and the operator. The "2" parameter
     # in the int() function indicates that the integer is base-2
     binary_operand_1 = int(input_val[0:operator_start], 2)
 
     operator = input_val[operator_start:operator_end]
 
-    # operand 2 is a number located between the operator and the equals sign. The "2" parameter
-    #     # in the int() function indicates that the integer is base-2
-    binary_operand_2 = int(input_val[operator_end:equals_sign], 2)
+    # operand 2 is a number located after the operator. The "2" parameter
+    # in the int() function indicates that the integer is base-2
+    binary_operand_2 = int(input_val[operator_end:], 2)
 
     return binary_operand_1, operator, binary_operand_2
 
@@ -119,6 +118,31 @@ def divide(binary_operand_1, binary_operand_2):
     return binary_operand_1 / binary_operand_2
 
 
+def control_lights(final_result, overflow_flag):
+
+    leds = LEDBoard(
+        4,   # 2^7 MSB/sign bit
+        17,   # 2^6
+        27,   # 2^5
+        22,  # 2^4
+        12,  # 2^3
+        16,  # 2^2
+        20,  # 2^1
+        21   # 2^0 LSB
+    )
+    
+    overflow_led = LED(24)
+    
+    for i, l in zip(final_result, leds):
+        if i == '1':
+            l.on()
+    
+    if overflow_flag:
+        overflow_led.on()
+    
+    sleep(10)
+    
+
 def main():
     binary_operand_1, operator, binary_operand_2 = get_input()
 
@@ -131,6 +155,8 @@ def main():
         print('Yes')
     else:
         print('No')
+
+    control_lights(final_result, overflow_flag)
 
 
 if __name__ == '__main__':
