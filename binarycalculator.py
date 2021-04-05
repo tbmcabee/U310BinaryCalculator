@@ -106,17 +106,23 @@ def add(binary_operand_1, binary_operand_2, carry_in):
 def multiply(binary_operand_1, binary_operand_2):
     total = 0
     iterations = len(bin(binary_operand_2)[2:])
-    overflow_flag = False
 
     for i in range(iterations):
+        # isolates the LSB of binary_operand_2
         lsb_binary_operand_2 = binary_operand_2 & 1
         if lsb_binary_operand_2 == 1:
+            # shifts binary_operand_1 one bit to the left, the equivalent of adding a zero to the end of the number
             partial_product = binary_operand_1 << i
         else:
             partial_product = 0
 
+        # returns total as a String
         total, overflow_flag = add(partial_product, total, 0)
+
+        # The "2" parameter in the int() function indicates that the integer is base-2
         total = int(total, 2)
+
+        # shifts binary_operand_2 one bit to the right, thereby removing the current LSB
         binary_operand_2 = binary_operand_2 >> 1
 
     return bin(total)[2:], overflow_flag
