@@ -6,8 +6,8 @@
 """
 
 import re
-from gpiozero import LEDBoard, LED
-from time import sleep
+# from gpiozero import LEDBoard, LED
+# from time import sleep
 
 
 def get_input():
@@ -73,11 +73,9 @@ def add(binary_operand_1, binary_operand_2, carry_in):
     overflow_flag = False
     iterations = 8  # there are 8 LED lights on the breadboard to represent the output. The MSB is the sign bit
 
-    print(type(binary_operand_1))
-
     while iterations > 0:
-        a = bin(binary_operand_1) & 1  # isolates the LSB of binary_operand_1
-        b = bin(binary_operand_2) & 1  # isolates the LSB of binary_operand_2
+        a = binary_operand_1 & 1    # isolates the LSB of binary_operand_1
+        b = binary_operand_2 & 1    # isolates the LSB of binary_operand_2
 
         output_1 = a ^ b  # A XOR B
         sum_val = carry_in ^ output_1  # carry_in XOR output_1
@@ -106,49 +104,50 @@ def add(binary_operand_1, binary_operand_2, carry_in):
 
 
 def multiply(binary_operand_1, binary_operand_2):
-    total = bin(binary_operand_1)[2:]
-    tempAdd = bin(binary_operand_1)[2:]
-    binNum2List = [int(d) for d in str(bin(binary_operand_2))[2:]]
+    total = 0
+    iterations = len(bin(binary_operand_2)[2:])
+    overflow_flag = False
 
-    print(binary_operand_1)
-
-    for digit in binNum2List:
-        if digit == 1:
-            tempAdd = "0" + tempAdd
-            print(tempAdd)
-            total = add(str(total), str(tempAdd), 1)
+    for i in range(iterations):
+        lsb_binary_operand_2 = binary_operand_2 & 1
+        if lsb_binary_operand_2 == 1:
+            partial_product = binary_operand_1 << i
         else:
-            tempAdd = "0" + tempAdd
+            partial_product = 0
 
-    return total
+        total, overflow_flag = add(partial_product, total, 0)
+        total = int(total, 2)
+        binary_operand_2 = binary_operand_2 >> 1
+
+    return bin(total)[2:], overflow_flag
 
 
 def divide(binary_operand_1, binary_operand_2):
     return binary_operand_1 / binary_operand_2
 
 
-def control_lights(final_result, overflow_flag):
-    leds = LEDBoard(
-        4,  # 2^7 MSB/sign bit
-        17,  # 2^6
-        27,  # 2^5
-        22,  # 2^4
-        12,  # 2^3
-        16,  # 2^2
-        20,  # 2^1
-        21  # 2^0 LSB
-    )
-
-    overflow_led = LED(24)
-
-    for i, l in zip(final_result, leds):
-        if i == '1':
-            l.on()
-
-    if overflow_flag:
-        overflow_led.on()
-
-    sleep(10)
+# def control_lights(final_result, overflow_flag):
+#     leds = LEDBoard(
+#         4,  # 2^7 MSB/sign bit
+#         17,  # 2^6
+#         27,  # 2^5
+#         22,  # 2^4
+#         12,  # 2^3
+#         16,  # 2^2
+#         20,  # 2^1
+#         21  # 2^0 LSB
+#     )
+#
+#     overflow_led = LED(24)
+#
+#     for i, l in zip(final_result, leds):
+#         if i == '1':
+#             l.on()
+#
+#     if overflow_flag:
+#         overflow_led.on()
+#
+#     sleep(10)
 
 
 def main():
@@ -164,7 +163,7 @@ def main():
     else:
         print('No')
 
-    control_lights(final_result, overflow_flag)
+    # control_lights(final_result, overflow_flag)
 
 
 if __name__ == '__main__':

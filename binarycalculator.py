@@ -6,15 +6,14 @@
 """
 
 import re
-from gpiozero import LEDBoard, LED
-from time import sleep
+# from gpiozero import LEDBoard, LED
+# from time import sleep
 
 
 def get_input():
     """
     Requests input from the user and parses the input String into a numerical operand one, String character, and
     numerical operand two
-
     :return: The integer value of operand 1 in base-2, the String operator, and the integer value of operand 2 in
     base-2
     """
@@ -41,11 +40,9 @@ def calculate(binary_operand_1, operator, binary_operand_2):
     """
     Determines which mathematical function needs to be called based on the input provided by the user and calls this
     function
-
     :param binary_operand_1: Operand 1 in base-2
     :param operator: Mathematical operator
     :param binary_operand_2: Operand 2 in base-2
-
     :return: The final result of the calculation as a String
     """
 
@@ -77,8 +74,8 @@ def add(binary_operand_1, binary_operand_2, carry_in):
     iterations = 8  # there are 8 LED lights on the breadboard to represent the output. The MSB is the sign bit
 
     while iterations > 0:
-        a = binary_operand_1 & 1  # isolates the LSB of binary_operand_1
-        b = binary_operand_2 & 1  # isolates the LSB of binary_operand_2
+        a = binary_operand_1 & 1    # isolates the LSB of binary_operand_1
+        b = binary_operand_2 & 1    # isolates the LSB of binary_operand_2
 
         output_1 = a ^ b  # A XOR B
         sum_val = carry_in ^ output_1  # carry_in XOR output_1
@@ -107,37 +104,51 @@ def add(binary_operand_1, binary_operand_2, carry_in):
 
 
 def multiply(binary_operand_1, binary_operand_2):
-    return binary_operand_1 * binary_operand_2
+    total = 0
+    iterations = len(bin(binary_operand_2)[2:])
+    overflow_flag = False
+
+    for i in range(iterations):
+        lsb_binary_operand_2 = binary_operand_2 & 1
+        if lsb_binary_operand_2 == 1:
+            partial_product = binary_operand_1 << i
+        else:
+            partial_product = 0
+
+        total, overflow_flag = add(partial_product, total, 0)
+        total = int(total, 2)
+        binary_operand_2 = binary_operand_2 >> 1
+
+    return bin(total)[2:], overflow_flag
 
 
 def divide(binary_operand_1, binary_operand_2):
     return binary_operand_1 / binary_operand_2
 
 
-def control_lights(final_result, overflow_flag):
+# def control_lights(final_result, overflow_flag):
+#     leds = LEDBoard(
+#         4,  # 2^7 MSB/sign bit
+#         17,  # 2^6
+#         27,  # 2^5
+#         22,  # 2^4
+#         12,  # 2^3
+#         16,  # 2^2
+#         20,  # 2^1
+#         21  # 2^0 LSB
+#     )
+#
+#     overflow_led = LED(24)
+#
+#     for i, l in zip(final_result, leds):
+#         if i == '1':
+#             l.on()
+#
+#     if overflow_flag:
+#         overflow_led.on()
+#
+#     sleep(10)
 
-    leds = LEDBoard(
-        4,   # 2^7 MSB/sign bit
-        17,   # 2^6
-        27,   # 2^5
-        22,  # 2^4
-        12,  # 2^3
-        16,  # 2^2
-        20,  # 2^1
-        21   # 2^0 LSB
-    )
-    
-    overflow_led = LED(24)
-    
-    for i, l in zip(final_result, leds):
-        if i == '1':
-            l.on()
-    
-    if overflow_flag:
-        overflow_led.on()
-    
-    sleep(10)
-    
 
 def main():
     binary_operand_1, operator, binary_operand_2 = get_input()
@@ -152,7 +163,7 @@ def main():
     else:
         print('No')
 
-    control_lights(final_result, overflow_flag)
+    # control_lights(final_result, overflow_flag)
 
 
 if __name__ == '__main__':
