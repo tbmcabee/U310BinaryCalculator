@@ -106,6 +106,7 @@ def add(binary_operand_1, binary_operand_2, carry_in):
 def multiply(binary_operand_1, binary_operand_2):
     total = 0
     iterations = len(bin(binary_operand_2)[2:])
+    overflow_flag = False
 
     for i in range(iterations):
         # isolates the LSB of binary_operand_2
