@@ -104,6 +104,13 @@ def add(binary_operand_1, binary_operand_2, carry_in):
 
 
 def multiply(binary_operand_1, binary_operand_2):
+    """
+    Performs multiplication of two signed binary numbers.
+    :param binary_operand_1: Operand 1 in base-2 format
+    :param binary_operand_2: Operand 2 in base-2 format
+    :return: A signed binary number that represents the product of binary_operand_1 and binary_operand_2, as well as
+    the value of the overflow_flag
+    """
     total = 0
     iterations = len(bin(binary_operand_2)[2:])
     overflow_flag = False
