@@ -3,7 +3,7 @@ U310 Project: PI Binary Calculator
 
 Group: Katherine, Ashton, Tallon
 
-Language: Java
+Language: Python
 
 Objectives:
 * Adding, Subtracting, Multipying, etc for set binary numbers.
