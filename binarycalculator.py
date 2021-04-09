@@ -6,8 +6,8 @@
 """
 
 import re
-# from gpiozero import LEDBoard, LED
-# from time import sleep
+from gpiozero import LEDBoard, LED
+from time import sleep
 
 
 def get_input():
@@ -133,36 +133,40 @@ def multiply(binary_operand_1, binary_operand_2):
 
         # shifts binary_operand_2 one bit to the right, thereby removing the current LSB
         binary_operand_2 = binary_operand_2 >> 1
+    
+    total = bin(total)[2:]
+    
+    total = total.rjust(8,'0')
 
-    return bin(total)[2:], overflow_flag
+    return total, overflow_flag
 
 
 def divide(binary_operand_1, binary_operand_2):
     return binary_operand_1 / binary_operand_2
 
 
-# def control_lights(final_result, overflow_flag):
-#     leds = LEDBoard(
-#         4,  # 2^7 MSB/sign bit
-#         17,  # 2^6
-#         27,  # 2^5
-#         22,  # 2^4
-#         12,  # 2^3
-#         16,  # 2^2
-#         20,  # 2^1
-#         21  # 2^0 LSB
-#     )
-#
-#     overflow_led = LED(24)
-#
-#     for i, l in zip(final_result, leds):
-#         if i == '1':
-#             l.on()
-#
-#     if overflow_flag:
-#         overflow_led.on()
-#
-#     sleep(10)
+def control_lights(final_result, overflow_flag):
+     leds = LEDBoard(
+         20,  # 2^7 MSB/sign bit
+         16,  # 2^6
+         12,  # 2^5
+         22,  # 2^4
+         27,  # 2^3
+         17,  # 2^2
+         4,  # 2^1
+         24  # 2^0 LSB
+     )
+
+     overflow_led = LED(21)
+
+     for i, l in zip(final_result, leds):
+         if i == '1':
+             l.on()
+
+     if overflow_flag:
+         overflow_led.on()
+
+     sleep(5)
 
 
 def main():
@@ -178,8 +182,9 @@ def main():
     else:
         print('No')
 
-    # control_lights(final_result, overflow_flag)
+    control_lights(final_result, overflow_flag)
 
 
 if __name__ == '__main__':
     main()
+
