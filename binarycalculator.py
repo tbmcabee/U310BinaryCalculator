@@ -6,8 +6,8 @@
 """
 
 import re
-from gpiozero import LEDBoard, LED
-from time import sleep
+# from gpiozero import LEDBoard, LED
+# from time import sleep
 
 
 def get_input():
@@ -73,7 +73,7 @@ def add(binary_operand_1, binary_operand_2, carry_in):
     overflow_flag = False
     iterations = 8  # there are 8 LED lights on the breadboard to represent the output. The MSB is the sign bit
 
-    while iterations > 0:
+    for i in range(iterations):
         a = binary_operand_1 & 1    # isolates the LSB of binary_operand_1
         b = binary_operand_2 & 1    # isolates the LSB of binary_operand_2
 
@@ -97,8 +97,6 @@ def add(binary_operand_1, binary_operand_2, carry_in):
 
         # modifies the value of binary_num_2 by shifting one bit to the right, thereby removing the current LSB
         binary_operand_2 = binary_operand_2 >> 1
-
-        iterations -= 1
 
     return final_result, overflow_flag
 
@@ -136,37 +134,72 @@ def multiply(binary_operand_1, binary_operand_2):
     
     total = bin(total)[2:]
     
-    total = total.rjust(8,'0')
+    total = total.rjust(8, '0')
 
     return total, overflow_flag
 
 
-def divide(binary_operand_1, binary_operand_2):
-    return binary_operand_1 / binary_operand_2
+def divide(dividend, divisor):
+    quotient = ''
+    dividend_negative = False
+    divisor_negative = False
+    overflow_flag = False
+    iterations = 8
+
+    if dividend >> 7 == 1:
+        dividend_negative = True
+        dividend, overflow_flag = add(0, ~dividend, 1)
+        dividend = int(dividend, 2)
+
+    if divisor >> 7 == 1:
+        divisor_negative = True
+        divisor, overflow_flag = add(0, ~divisor, 1)
+        divisor = int(divisor, 2)
+
+    for i in range(iterations):
+        dividend = bin(dividend)[2:]
+        dividend = dividend.rjust(15, '0')
+        dividend_left_half = dividend[:8]
+        dividend_right_half = dividend[8:]
+        dividend_left_half = int(dividend_left_half, 2)
+        dividend_left_half, overflow_flag = add(dividend_left_half, ~divisor, 1)
+        if dividend_left_half[0] == '1':
+            quotient = quotient + '0'
+        elif dividend_left_half[0] == '0':
+            quotient = quotient + '1'
+            dividend = dividend_left_half + dividend_right_half
+
+        dividend = int(dividend, 2) << 1
+
+    if dividend_negative != divisor_negative:
+        quotient = int(quotient, 2)
+        quotient, overflow_flag = add(0, ~quotient, 1)
+
+    return quotient, overflow_flag
 
 
-def control_lights(final_result, overflow_flag):
-     leds = LEDBoard(
-         20,  # 2^7 MSB/sign bit
-         16,  # 2^6
-         12,  # 2^5
-         22,  # 2^4
-         27,  # 2^3
-         17,  # 2^2
-         4,  # 2^1
-         24  # 2^0 LSB
-     )
-
-     overflow_led = LED(21)
-
-     for i, l in zip(final_result, leds):
-         if i == '1':
-             l.on()
-
-     if overflow_flag:
-         overflow_led.on()
-
-     sleep(5)
+# def control_lights(final_result, overflow_flag):
+#      leds = LEDBoard(
+#          20,  # 2^7 MSB/sign bit
+#          16,  # 2^6
+#          12,  # 2^5
+#          22,  # 2^4
+#          27,  # 2^3
+#          17,  # 2^2
+#          4,  # 2^1
+#          24  # 2^0 LSB
+#      )
+#
+#      overflow_led = LED(21)
+#
+#      for i, l in zip(final_result, leds):
+#          if i == '1':
+#              l.on()
+#
+#      if overflow_flag:
+#          overflow_led.on()
+#
+#      sleep(5)
 
 
 def main():
@@ -182,9 +215,8 @@ def main():
     else:
         print('No')
 
-    control_lights(final_result, overflow_flag)
+    # control_lights(final_result, overflow_flag)
 
 
 if __name__ == '__main__':
     main()
-
