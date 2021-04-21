@@ -117,15 +117,13 @@ def multiply(multiplicand, multiplier):
     multiplier_negative = False
     overflow_flag = False
 
-    # If dividend is negative, convert it to its positive form using 2s complement because division requires
-    # checks for remainders < 0
+    # If multiplicand is negative, convert it to its positive form using 2s complement
     if multiplicand >> 7 == 1:
         multiplicand_negative = True
         multiplicand, overflow_flag = add(0, ~multiplicand, 1)
         multiplicand = int(multiplicand, 2)
 
-    # If divisor is negative, convert it to its positive form using 2s complement because division requires checks
-    # for remainders < 0
+    # If multiplier is negative, convert it to its positive form using 2s complement
     if multiplier >> 7 == 1:
         multiplier_negative = True
         multiplier, overflow_flag = add(0, ~multiplier, 1)
@@ -141,7 +139,7 @@ def multiply(multiplicand, multiplier):
         else:
             partial_product = 0
 
-        # returns total as a String
+        # returns product as a String
         product, overflow_flag = add(partial_product, product, 0)
 
         # The "2" parameter in the int() function indicates that the integer is base-2
@@ -154,7 +152,7 @@ def multiply(multiplicand, multiplier):
 
     product = product.rjust(8, '0')
 
-    # convert result back to negative using 2s complement if the multiplicand or the multiplier, but not both,
+    # convert product back to negative using 2s complement if the multiplicand or the multiplier, but not both,
     # were originally negative
     if multiplicand_negative != multiplier_negative:
         product = int(product, 2)
