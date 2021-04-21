@@ -8,8 +8,8 @@
 import re
 
 
-# from gpiozero import LEDBoard, LED
-# from time import sleep
+from gpiozero import LEDBoard, LED
+from time import sleep
 
 
 def get_input():
@@ -88,7 +88,7 @@ def add(binary_operand_1, binary_operand_2, carry_in):
 
         # overflow occurs when the sum on the last iteration = 11 (binary), resulting in
         # a carry_in value of 1.
-        if iterations == 1 and carry_in == 1:
+        if i == 7 and carry_in == 1:
             overflow_flag = True
 
         # if final result is currently "001" and sum_val is "1" then final_result becomes "1001"
@@ -103,42 +103,64 @@ def add(binary_operand_1, binary_operand_2, carry_in):
     return final_result, overflow_flag
 
 
-def multiply(binary_operand_1, binary_operand_2):
+def multiply(multiplicand, multiplier):
     """
     Performs multiplication of two signed binary numbers.
-    :param binary_operand_1: Operand 1 in base-2 format
-    :param binary_operand_2: Operand 2 in base-2 format
+    :param multiplicand: Operand 1 in base-2 format
+    :param multiplier: Operand 2 in base-2 format
     :return: A signed binary number that represents the product of the first binary operand and the second binary
     operand, as well as the value of the overflow flag
     """
-    total = 0
-    iterations = len(bin(binary_operand_2)[2:])
+    product = 0
+    iterations = 8
+    multiplicand_negative = False
+    multiplier_negative = False
     overflow_flag = False
 
+    # If dividend is negative, convert it to its positive form using 2s complement because division requires
+    # checks for remainders < 0
+    if multiplicand >> 7 == 1:
+        multiplicand_negative = True
+        multiplicand, overflow_flag = add(0, ~multiplicand, 1)
+        multiplicand = int(multiplicand, 2)
+
+    # If divisor is negative, convert it to its positive form using 2s complement because division requires checks
+    # for remainders < 0
+    if multiplier >> 7 == 1:
+        multiplier_negative = True
+        multiplier, overflow_flag = add(0, ~multiplier, 1)
+        multiplier = int(multiplier, 2)
+
     for i in range(iterations):
-        # isolates the LSB of binary_operand_2
-        lsb_binary_operand_2 = binary_operand_2 & 1
-        if lsb_binary_operand_2 == 1:
-            # shifts binary_operand_1 to the left 'i' bits, the equivalent of adding a 'i' zeros to the end of the
+        # isolates the LSB of multiplier
+        lsb_multiplier = multiplier & 1
+        if lsb_multiplier == 1:
+            # shifts multiplicand to the left 'i' bits, the equivalent of adding a 'i' zeros to the end of the
             # number
-            partial_product = binary_operand_1 << i
+            partial_product = multiplicand << i
         else:
             partial_product = 0
 
         # returns total as a String
-        total, overflow_flag = add(partial_product, total, 0)
+        product, overflow_flag = add(partial_product, product, 0)
 
         # The "2" parameter in the int() function indicates that the integer is base-2
-        total = int(total, 2)
+        product = int(product, 2)
 
-        # shifts binary_operand_2 one bit to the right, thereby removing the current LSB
-        binary_operand_2 = binary_operand_2 >> 1
+        # shifts multiplier one bit to the right, thereby removing the current LSB
+        multiplier = multiplier >> 1
 
-    total = bin(total)[2:]
+    product = bin(product)[2:]
 
-    total = total.rjust(8, '0')
+    product = product.rjust(8, '0')
 
-    return total, overflow_flag
+    # convert result back to negative using 2s complement if the multiplicand or the multiplier, but not both,
+    # were originally negative
+    if multiplicand_negative != multiplier_negative:
+        product = int(product, 2)
+        product, overflow_flag = add(0, ~product, 1)
+
+    return product, overflow_flag
 
 
 def divide(dividend, divisor):
@@ -208,27 +230,27 @@ def control_lights(final_result, overflow_flag):
     :param overflow_flag: A boolean value indicating whether or not the calculation generated overflow
     :return: The illumination of the correct LED lights on the breadboard to represent the final result
     """
-    # leds = LEDBoard(
-    #     20,  # 2^7 MSB/sign bit
-    #     16,  # 2^6
-    #     12,  # 2^5
-    #     22,  # 2^4
-    #     27,  # 2^3
-    #     17,  # 2^2
-    #     4,  # 2^1
-    #     24  # 2^0 LSB
-    # )
-    #
-    # overflow_led = LED(21)
-    #
-    # for i, l in zip(final_result, leds):
-    #     if i == '1':
-    #         l.on()
-    #
-    # if overflow_flag:
-    #     overflow_led.on()
-    #
-    # sleep(5)
+    leds = LEDBoard(
+        20,  # 2^7 MSB/sign bit
+        16,  # 2^6
+        12,  # 2^5
+        22,  # 2^4
+        27,  # 2^3
+        17,  # 2^2
+        4,  # 2^1
+        24  # 2^0 LSB
+    )
+
+    overflow_led = LED(21)
+
+    for i, l in zip(final_result, leds):
+        if i == '1':
+            l.on()
+
+    if overflow_flag:
+        overflow_led.on()
+
+    sleep(5)
 
 
 def main():
@@ -244,7 +266,7 @@ def main():
     else:
         print('No')
 
-    # control_lights(final_result, overflow_flag)
+    control_lights(final_result, overflow_flag)
 
 
 if __name__ == '__main__':
