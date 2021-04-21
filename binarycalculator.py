@@ -72,7 +72,6 @@ def add(binary_operand_1, binary_operand_2, carry_in):
     as well as the value of the overflow flag
     """
     final_result = ''
-    overflow_flag = False
     operand_1_negative = False
     operand_2_negative = False
     sum_negative = False
