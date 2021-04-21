@@ -53,7 +53,7 @@ def calculate(binary_operand_1, operator, binary_operand_2):
     elif operator == '-':
         # carry in is 1 because we have to account for the 1 that needs to be added to the one's complement
         # representation of binary_operand_2
-        return add(binary_operand_1, ~binary_operand_2, 1)
+        return subtract(binary_operand_1, binary_operand_2)
     elif operator == '*':
         return multiply(binary_operand_1, binary_operand_2)
     elif operator == '/':
@@ -73,7 +73,16 @@ def add(binary_operand_1, binary_operand_2, carry_in):
     """
     final_result = ''
     overflow_flag = False
+    operand_1_negative = False
+    operand_2_negative = False
+    sum_negative = False
     iterations = 8  # there are 8 LED lights on the breadboard to represent the output. The MSB is the sign bit
+
+    if binary_operand_1 >> 7 == 1:
+        operand_1_negative = True
+
+    if binary_operand_2 >> 7 == 1:
+        operand_2_negative = True
 
     for i in range(iterations):
         a = binary_operand_1 & 1  # isolates the LSB of binary_operand_1
@@ -86,11 +95,6 @@ def add(binary_operand_1, binary_operand_2, carry_in):
         output_3 = a & b  # a AND b
         carry_in = output_2 | output_3  # output_2 OR output_3
 
-        # overflow occurs when the sum on the last iteration = 11 (binary), resulting in
-        # a carry_in value of 1.
-        if i == 7 and carry_in == 1:
-            overflow_flag = True
-
         # if final result is currently "001" and sum_val is "1" then final_result becomes "1001"
         final_result = str(sum_val) + final_result
 
@@ -100,7 +104,50 @@ def add(binary_operand_1, binary_operand_2, carry_in):
         # modifies the value of binary_num_2 by shifting one bit to the right, thereby removing the current LSB
         binary_operand_2 = binary_operand_2 >> 1
 
+    if final_result[0] == '1':
+        sum_negative = True
+
+    # If two 2's complement numbers are added, and they both have the same sign, then overflow occurs
+    # if and only if the result has the opposite sign
+    if (operand_1_negative == operand_2_negative) and (sum_negative != operand_1_negative):
+        overflow_flag = True
+    else:
+        overflow_flag = False
+
     return final_result, overflow_flag
+
+
+def subtract(minuend, subtrahend):
+    """
+    Performs bitwise subtraction of two signed binary numbers.
+    :param minuend: The number being subtracted
+    :param subtrahend: The number from which the minuend is being subtracted
+    :return: A signed binary number that represents the difference of the first binary operand and the second binary
+    operand, as well as the value of the overflow flag
+    """
+    difference_negative = False
+    minuend_negative = False
+    subtrahend_negative = False
+
+    if subtrahend >> 7 == 1:
+        subtrahend_negative = True
+
+    if minuend >> 7 == 1:
+        minuend_negative = True
+
+    difference, overflow_flag = add(minuend, ~subtrahend, 1)
+
+    if difference[0] == '1':
+        difference_negative = True
+
+    # If 2 Two's Complement numbers are subtracted, and their signs are different, then overflow occurs
+    # if and only if the result has the same sign as the subtrahend.
+    if (minuend_negative != subtrahend_negative) and (difference_negative == subtrahend_negative):
+        overflow_flag = True
+    else:
+        overflow_flag = False
+
+    return difference, overflow_flag
 
 
 def multiply(multiplicand, multiplier):
@@ -152,13 +199,13 @@ def multiply(multiplicand, multiplier):
 
     product = product.rjust(8, '0')
 
-    # convert product back to negative using 2s complement if the multiplicand or the multiplier, but not both,
-    # were originally negative
+    # # convert product back to negative using 2s complement if the multiplicand or the multiplier, but not both,
+    # # were originally negative
     if multiplicand_negative != multiplier_negative:
         product = int(product, 2)
         product, overflow_flag = add(0, ~product, 1)
 
-    return product, overflow_flag
+    return product, False
 
 
 def divide(dividend, divisor):
@@ -215,7 +262,7 @@ def divide(dividend, divisor):
         quotient = int(quotient, 2)
         quotient, overflow_flag = add(0, ~quotient, 1)
 
-    return quotient, overflow_flag
+    return quotient, False
 
 
 def control_lights(final_result, overflow_flag):
@@ -248,7 +295,7 @@ def control_lights(final_result, overflow_flag):
     if overflow_flag:
         overflow_led.on()
 
-    sleep(5)
+    sleep(15)
 
 
 def main():
